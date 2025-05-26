@@ -1,0 +1,34 @@
+[package]
+name = "halo2_solidity_verifier"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+halo2_proofs = { git = "https://github.com/zkonduit/halo2", package = "halo2_proofs" }
+askama = { version = "0.12.0", features = ["config"], default-features = false }
+hex = "0.4.3"
+ruint = "1.8.0"
+sha3 = "0.10"
+itertools = "0.11.0"
+
+# Remove when `vk.transcript_repr()` is ready for usage.
+blake2b_simd = "1"
+
+# For feature = "evm"
+revm = { version = "14.0.1", default-features = false, optional = true }
+regex = "1.10.3"
+
+[dev-dependencies]
+rand = "0.8.5"
+revm = { version = "14.0.1", default-features = false }
+halo2_maingate = { git = "https://github.com/zkonduit/halo2wrong", branch = "ac/chunked-mv-lookup", package = "maingate" }
+
+
+[features]
+default = []
+evm = ["dep:revm"]
+mv-lookup = ["halo2_proofs/mv-lookup", "halo2_maingate/mv-lookup"]
+
+[[example]]
+name = "separately"
+required-features = ["evm"]
