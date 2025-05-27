@@ -12,7 +12,7 @@ pub const FN_SIG_VERIFY_PROOF_WITH_VKA: [u8; 4] = [0x34, 0x09, 0xfc, 0x9f];
 /// Function signature of verifyWithDataAttestation(address,bytes)
 pub const FN_SIG_VERIFY_WITH_DATA_ATTESTATION: [u8; 4] = [0x4c, 0x79, 0x85, 0xd0];
 
-/// Function signatore of registeredVkas(bytes32[]) 0xdc8b4094
+/// Function signatore of registeredVkas(bytes32[] ) 0xdc8b4094
 pub const FN_SIG_REGISTER_VKA: [u8; 4] = [0xdc, 0x8b, 0x40, 0x94];
 
 /// Encode proof into calldata to invoke `Halo2Verifier.verifyProof`.
