@@ -772,8 +772,7 @@ where
                 let max_fsm_input_expr = *fsm_usages.iter().max().unwrap();
                 let max_fsm_table = evaluate_fsm_usage(0, lookup.table_expressions());
                 // Compare values directly, not references
-                let max_fsm = std::cmp::max(max_fsm_input_expr, max_fsm_table);
-                max_fsm
+                std::cmp::max(max_fsm_input_expr, max_fsm_table)
             })
             .collect_vec();
         let input_expressions_fsm_usage = *input_expressions_fsm_usage.iter().max().unwrap_or(&0);
