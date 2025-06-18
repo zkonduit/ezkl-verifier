@@ -1226,7 +1226,7 @@ contract Halo2VerifierReusable {
                     }
                 }
                 {
-                    // MV lookup computations 
+                    // lookup computations 
                     mstore(vka_end, mload(add(theta_mptr, 0x1C0))) // l_last
                     mstore(add(0x20, vka_end), mload(add(theta_mptr, 0x200))) // l_0
                     mstore(add(0x40, vka_end), mload(add(theta_mptr, 0x1E0))) // l_blind

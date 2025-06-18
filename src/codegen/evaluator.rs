@@ -704,7 +704,29 @@ where
         // 0x40 offset b/c that is where the fsm pointer starts in the permutations computation code block
         let permutation_computation_fsm_usage = (self.data.permutation_z_evals.len() * 0x20) + 0x40;
 
-        let input_expressions_fsm_usage = 0xc0; // offset to store theta offset ptrs used in the non mv lookup computations.
+        let input_expressions_fsm_usage = self
+            .cs
+            .lookups()
+            .iter()
+            .map(|lookup| {
+                let [max_fsm_table, max_fsm_input_expr] =
+                    [lookup.table_expressions(), lookup.input_expressions()].map(|expressions| {
+                        let fsm = 0xc0; // offset to store theta offset ptrs used in the non mv lookup computations.
+                        self.set_static_mem_ptr(fsm);
+                        let max_fsm_usage = expressions
+                            .iter()
+                            .map(|expression| self.evaluate_encode(expression))
+                            .fold(fsm, |mut acc, result| {
+                                acc += result.0.len() * 0x20;
+                                acc
+                            });
+                        self.reset();
+                        max_fsm_usage
+                    });
+                itertools::max([max_fsm_input_expr, max_fsm_table]).unwrap()
+            })
+            .collect_vec();
+        let input_expressions_fsm_usage = *input_expressions_fsm_usage.iter().max().unwrap_or(&0x0);
 
         itertools::max([
             gate_computation_fsm_usage,
@@ -722,8 +744,8 @@ where
         let permutation_computation_fsm_usage = (self.data.permutation_z_evals.len() * 0x20) + 0x40;
 
         let evaluate_fsm_usage = |idx: usize, expressions: &Vec<_>| {
-            let offset = 0xa0 + self.vka_end_ptr; // offset to store theta offset ptrs used
-                                                  // in the lookup computations.
+            let offset = 0xa0; // offset to store theta offset ptrs used
+                               // in the lookup computations.
             let fsm = (0x20 * idx) + offset;
             self.set_static_mem_ptr(fsm);
             let max_fsm_usage = expressions
@@ -747,10 +769,13 @@ where
                     .clone()
                     .map(|(idx, expressions)| evaluate_fsm_usage(idx, expressions))
                     .collect_vec();
-                *fsm_usages.iter().max().unwrap()
+                let max_fsm_input_expr = *fsm_usages.iter().max().unwrap();
+                let max_fsm_table = evaluate_fsm_usage(0, lookup.table_expressions());
+                // Compare values directly, not references
+                std::cmp::max(max_fsm_input_expr, max_fsm_table)
             })
             .collect_vec();
-        let input_expressions_fsm_usage = *input_expressions_fsm_usage.iter().max().unwrap_or(&0x0);
+        let input_expressions_fsm_usage = *input_expressions_fsm_usage.iter().max().unwrap_or(&0);
 
         itertools::max([
             gate_computation_fsm_usage,
