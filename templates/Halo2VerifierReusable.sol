@@ -70,13 +70,13 @@ contract Halo2VerifierReusable {
             // extract the decimals used for the rescaling from felt fixed points to floats
             let decimals := exp(10, and(rescaling_data, BYTE_FLAG_BITMASK))
             rescaling_data := shr(8, rescaling_data)
-            // extract the number of hashes processed by the circuit
-            let num_hashes := and(rescaling_data, BYTE_FLAG_BITMASK)
+            // extract the number of processed inputs
+            let num_processed_inputs := and(rescaling_data, BYTE_FLAG_BITMASK)
             rescaling_data := shr(8, rescaling_data)
-            // instance_cptr offset by the number of hashes (we don't want to rescale hashes)
-            let instance_cptr := add(instances.offset, num_hashes)
+            // instance_cptr offset by the number of processed inputs (we don't want to rescale processed inputs)
+            let instance_cptr := add(instances.offset, num_processed_inputs)
             // store the length of the rescaled instances
-            mstore(rescaled_mptr, sub(instances_len, num_hashes))
+            mstore(rescaled_mptr, sub(instances_len, num_processed_inputs))
             rescaled_mptr := add(rescaled_mptr, 0x20)
             for { let i := 0 } lt(i, num_words) { i := add(i, 1) } {
                 rescaling_data_cptr := add(rescaling_data_cptr, 0x20)

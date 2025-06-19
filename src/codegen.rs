@@ -54,7 +54,7 @@ pub struct SolidityGenerator<'a> {
     num_instances: Vec<usize>,
     scales: Vec<i32>,
     decimals: usize,
-    hash_count: usize,
+    processed_count: usize,
     acc_encoding: Option<AccumulatorEncoding>,
     meta: ConstraintSystemMeta,
 }
@@ -122,7 +122,7 @@ impl<'a> SolidityGenerator<'a> {
         num_instances: &[usize],
         scales: &[i32], // scaling data of the fixed point representation of the instances
         decimals: usize, // The decimals preserved in the on the chain rescaled values from felt instances -> floats. If none we use default of 18 (1e18 precision)
-        hash_count: usize, // The number of processed values in the circuit (max of 3)
+        processed_count: usize, // The number of processed values in the circuit (max of 3)
     ) -> Self {
         assert_ne!(vk.cs().num_advice_columns(), 0);
         assert!(
@@ -146,7 +146,6 @@ impl<'a> SolidityGenerator<'a> {
             scales.len(),
             "num_instances and scales must have the same length"
         );
-        assert!(hash_count < 4, "hash count must be less than 3");
 
         // If decimals is None, we use the default of 18 (1e18 precision)
 
@@ -161,7 +160,7 @@ impl<'a> SolidityGenerator<'a> {
             scheme,
             num_instances: num_instances.to_vec(),
             scales: scales.to_vec(),
-            hash_count,
+            processed_count,
             decimals,
             acc_encoding: None,
             meta: ConstraintSystemMeta::new(vk.cs()),
@@ -332,7 +331,8 @@ impl<'a> SolidityGenerator<'a> {
         // Fill in the actual values where applicable
         let domain = self.vk.get_domain();
         let vk_digest = fr_to_u256(vk_transcript_repr(self.vk));
-        let num_instances = U256::from(self.num_instances.iter().sum::<usize>() + self.hash_count);
+        let num_instances =
+            U256::from(self.num_instances.iter().sum::<usize>() + self.processed_count);
         let k = U256::from(domain.k());
         let n_inv = fr_to_u256(bn256::Fr::from(1 << domain.k()).invert().unwrap());
         let omega = fr_to_u256(domain.get_omega());
@@ -819,7 +819,7 @@ impl<'a> SolidityGenerator<'a> {
             assert!(*scale < 0x100, "scale must be less than 0x100");
             assert!(
                 num_instances < 0x10000,
-                "num_instances must be less than 0x10000"
+                "num_instances must be less than 2048"
             );
 
             packed_words[last_idx] |= U256::from(num_instances) << bit_counter;
@@ -835,7 +835,7 @@ impl<'a> SolidityGenerator<'a> {
         assert!(self.decimals < 0x100, "decimals must be less than 0x100");
         packed_words[0] |= U256::from(packed_words_len);
         packed_words[0] |= U256::from(self.decimals) << 8;
-        packed_words[0] |= U256::from(self.hash_count * 0x20) << 16;
+        packed_words[0] |= U256::from(self.processed_count * 0x20) << 16;
         packed_words
     }
 }
