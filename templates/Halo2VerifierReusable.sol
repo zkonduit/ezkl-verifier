@@ -84,6 +84,9 @@ contract Halo2VerifierReusable {
                     // extract num_instances
                     let num_instances := and(rescaling_data, PTR_BITMASK)
                     rescaling_data := shr(16, rescaling_data)
+                    // extract the scale sign (1 => +, 0 => -)
+                    let scale_sign := and(rescaling_data, BYTE_FLAG_BITMASK)
+                    rescaling_data := shr(8, rescaling_data)
                     // extract the scale value (bits preserved in the fixed point representation of the instance)
                     let scale := shl(and(rescaling_data, BYTE_FLAG_BITMASK), 1)
                     rescaling_data := shr(8, rescaling_data)
@@ -94,16 +97,23 @@ contract Halo2VerifierReusable {
                             instance := sub(R, instance)
                             neg := 1
                         }
-                        // Perform on-chain rounding]
-                        let output := add(
-                            div(mul(instance, decimals), scale), 
-                                gt(add(
-                                    mul(mulmod(instance, decimals, scale), 2), 
-                                    1
-                                ), 
-                                scale
-                            )
-                        )
+                        // Perform on-chain rounding
+                        let output := mul(mul(instance, decimals), scale)
+                        switch scale_sign
+                        case 0x1 {
+                            output := add(
+                                div(mul(instance, decimals), scale), 
+                                    gt(add(
+                                        mul(mulmod(instance, decimals, scale), 2), 
+                                        1
+                                    ), 
+                                    scale
+                                )
+                            )   
+                        }
+                        case 0x0 {
+                            output := mul(mul(instance, decimals), scale)
+                        }
                         // Now if neg is true compute the two's compliment of the output.
                         if neg {
                             output := sub(0, output)

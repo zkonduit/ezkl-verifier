@@ -805,7 +805,7 @@ impl<'a> SolidityGenerator<'a> {
         let mut bit_counter = 24;
         let mut last_idx = 0;
         for (scale, num_instances) in self.scales.iter().zip(self.num_instances.iter()) {
-            let offset = 24; // 16 bits for length and 8 bits for scale
+            let offset = 32; // 16 bits for length and 8 bits for sign of scale and 8 for magnitude of scale
             let next_bit_counter = bit_counter + offset;
             if next_bit_counter > 256 {
                 last_idx += 1;
@@ -824,7 +824,10 @@ impl<'a> SolidityGenerator<'a> {
 
             packed_words[last_idx] |= U256::from(num_instances) << bit_counter;
             bit_counter += 16;
-            packed_words[last_idx] |= U256::from(*scale) << bit_counter;
+            let (sign, scale) = if *scale > 0 { (1, *scale) } else { (0, -scale) };
+            packed_words[last_idx] |= U256::from(sign) << bit_counter;
+            bit_counter += 8;
+            packed_words[last_idx] |= U256::from(scale) << bit_counter;
             bit_counter += 8;
         }
         let packed_words_len = packed_words.len();
