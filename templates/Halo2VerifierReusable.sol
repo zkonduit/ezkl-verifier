@@ -82,8 +82,8 @@ contract Halo2VerifierReusable {
                 rescaling_data_cptr := add(rescaling_data_cptr, 0x20)
                 for { } rescaling_data { } {
                     // extract num_instances
-                    let num_instances := and(rescaling_data, PTR_BITMASK)
-                    rescaling_data := shr(16, rescaling_data)
+                    let num_instances := and(rescaling_data, 0xFFFFFFFF)
+                    rescaling_data := shr(32, rescaling_data)
                     // extract the scale sign (1 => +, 0 => -)
                     let scale_sign := and(rescaling_data, BYTE_FLAG_BITMASK)
                     rescaling_data := shr(8, rescaling_data)

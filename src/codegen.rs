@@ -805,7 +805,7 @@ impl<'a> SolidityGenerator<'a> {
         let mut bit_counter = 24;
         let mut last_idx = 0;
         for (scale, num_instances) in self.scales.iter().zip(self.num_instances.iter()) {
-            let offset = 32; // 16 bits for length and 8 bits for sign of scale and 8 for magnitude of scale
+            let offset = 48; // 32 bits for num instances and 8 bits for sign of scale and 8 for magnitude of scale
             let next_bit_counter = bit_counter + offset;
             if next_bit_counter > 256 {
                 last_idx += 1;
@@ -818,12 +818,12 @@ impl<'a> SolidityGenerator<'a> {
             // Ensure that the packed num_advices and num_user_challenges data doesn't overflow.
             assert!(*scale < 0x100, "scale must be less than 0x100");
             assert!(
-                num_instances < 0x10000,
-                "num_instances must be less than 2048"
+                num_instances < 0x100000000,
+                "num_instances must be less than 134217728"
             );
 
             packed_words[last_idx] |= U256::from(num_instances) << bit_counter;
-            bit_counter += 16;
+            bit_counter += 32;
             let (sign, scale) = if *scale > 0 { (1, *scale) } else { (0, -scale) };
             packed_words[last_idx] |= U256::from(sign) << bit_counter;
             bit_counter += 8;
