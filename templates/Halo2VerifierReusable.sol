@@ -61,8 +61,8 @@ contract Halo2VerifierReusable {
             // Perform the rescaling of the instances
             let rescaled_mptr := 0x40
             let instances_len := mul(instances.length, 0x20)
-            // fetch the rescaling data from the vk (last word of the vk)
-            let rescaling_data_cptr := add(add(instances.offset, instances_len), vka_length)
+            // fetch the rescaling data from the vka
+            let rescaling_data_cptr := add(add(instances.offset, instances_len), mload({{ vk_const_offsets["rescaling_computations_len_offset"]|hex() }}))
             let rescaling_data := calldataload(rescaling_data_cptr)
             // extract num_words 
             let num_words := and(rescaling_data, BYTE_FLAG_BITMASK)

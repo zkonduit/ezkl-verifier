@@ -501,7 +501,7 @@ impl<'a> SolidityGenerator<'a> {
         let pcs_computations_len_offset =
             lookup_computations_len_offset + (0x20 * lookup_computations_dummy.len());
         let rescaling_computations_len_offset =
-            pcs_computations_len_offset + (0x20 * pcs_computations_dummy.len());
+            0x20 + pcs_computations_len_offset + (0x20 * pcs_computations_dummy.len()) - vk_mptr; // Offset loaded from calldata, not memory. So we need to subtract by vk_mptr
 
         set_constant_value(
             &mut dummy_vk.constants,
