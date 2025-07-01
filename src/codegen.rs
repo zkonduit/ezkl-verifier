@@ -389,7 +389,7 @@ impl<'a> SolidityGenerator<'a> {
                     "num_evals" => U256::from(self.meta.num_evals),
                     "num_neg_lagranges" => {
                         U256::from(self.meta.rotation_last.unsigned_abs() as usize)
-                    },
+                    }
                     "num_fixed_comms" => U256::from(self.meta.num_fixeds),
                     _ => dummy_val,
                 };
